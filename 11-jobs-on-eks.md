@@ -23,6 +23,8 @@ A Deployment expects its Pods to run FOREVER, restarting them if they exit. A **
 kubectl create job hello-job --image=busybox -- echo 'batch task complete on EKS'
 ```
 
+The `--` separates kubectl's own flags from the command that should actually run INSIDE the container - everything after it (`echo 'batch task complete on EKS'`) is what the busybox container executes once, not a kubectl instruction.
+
 ## Step 2: Watch it run to completion
 
 ```
@@ -36,6 +38,8 @@ Press Ctrl+C once COMPLETIONS shows 1/1.
 ```
 kubectl logs job/hello-job
 ```
+
+`kubectl logs job/<name>` is a convenience form that finds the Job's Pod for you and shows its logs, without needing to look up the exact Pod name first - useful since a Job's Pod name always has a random suffix.
 
 ## Step 4: Confirm the completed Pod is NOT restarted, unlike a Deployment's Pod would be
 

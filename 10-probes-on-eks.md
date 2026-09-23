@@ -19,6 +19,40 @@ A **liveness probe** answers 'is this container still alive, or should it be res
 
 ## Step 1: Deploy with both probes configured
 
+**In VS Code:** Create a new file named `~/course/probes.yaml` in your current working folder (Explorer panel, right-click your folder > New File), paste this in, and save (`Ctrl+S`):
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            periodSeconds: 10
+```
+
+*(If you'd rather use the terminal instead of VS Code, this does the same thing:)*
+
 ```
 cat > ~/course/probes.yaml <<'EOF'
 apiVersion: apps/v1
@@ -49,44 +83,15 @@ spec:
               port: 80
             periodSeconds: 10
 EOF
+```
+
+In a terminal (VS Code's integrated terminal works well here - `` Ctrl+` ``):
+
+```
 kubectl apply -f ~/course/probes.yaml
 kubectl expose deployment web --port=80
 ```
 
-
-**Using VS Code instead:** rather than the heredoc above, create this directly in the editor.
-
-In VS Code's Explorer panel, create a new file named `~/course/probes.yaml` in your working folder, paste this, and save (`Ctrl+S`):
-
-```
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: web
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: web
-  template:
-    metadata:
-      labels:
-        app: web
-    spec:
-      containers:
-        - name: nginx
-          image: nginx:1.27
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 80
-            periodSeconds: 5
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 80
-            periodSeconds: 10
-```
 
 Review this file in VS Code before applying - notice readinessProbe and livenessProbe both point at the same path here, but that's not required; in a real app they're often different endpoints.
 

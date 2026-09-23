@@ -48,6 +48,8 @@ BUILD_ID=$(aws codebuild start-build --project-name build-$PARTICIPANT --region 
 echo $BUILD_ID
 ```
 
+`start-build` kicks off the build asynchronously and returns immediately with an ID - it doesn't wait for the build to finish. That ID is what the next step uses to check on progress, similar to how `docker build` runs synchronously in your terminal but a cloud build service hands you a reference to check back on instead.
+
 ## Step 4: Watch it complete
 
 ```

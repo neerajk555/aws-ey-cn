@@ -31,8 +31,24 @@ You cannot create your own IAM role for Lambda to assume - your account's permis
 
 ## Step 2: Write the handler function - notice it reads its message from an environment variable, not hardcoded
 
+In a terminal (VS Code's integrated terminal works well here - `` Ctrl+` ``):
+
 ```
 mkdir -p ~/course/lambda-exercise && cd ~/course/lambda-exercise
+```
+
+**In VS Code:** Create a new file named `index.js` in your current working folder (Explorer panel, right-click your folder > New File), paste this in, and save (`Ctrl+S`):
+
+```
+exports.handler = async () => {
+  const message = process.env.MESSAGE || 'default message';
+  return { statusCode: 200, body: message };
+};
+```
+
+*(If you'd rather use the terminal instead of VS Code, this does the same thing:)*
+
+```
 cat > index.js <<'EOF'
 exports.handler = async () => {
   const message = process.env.MESSAGE || 'default message';
@@ -42,17 +58,6 @@ EOF
 ```
 
 
-**Using VS Code instead:** rather than the heredoc above, create this directly in the editor.
-
-In VS Code's Explorer panel, create a new file named `index.js` in your working folder, paste this, and save (`Ctrl+S`):
-
-```
-exports.handler = async () => {
-  const message = process.env.MESSAGE || 'default message';
-  return { statusCode: 200, body: message };
-};
-```
-
 Open this file in VS Code and look closely at `process.env.MESSAGE` - this one line is what lets the SAME deployed code produce different output depending on configuration, exactly like an environment variable in a Docker container.
 
 ## Step 3: Package the function
@@ -61,11 +66,15 @@ Open this file in VS Code and look closely at `process.env.MESSAGE` - this one l
 zip fn.zip index.js
 ```
 
+AWS Lambda deploys code as a .zip archive, not as raw source files - this command bundles your single `index.js` file into `fn.zip`, which the next step uploads. For a function with dependencies, you'd also zip up a `node_modules` folder here, but this function has none.
+
 ## Step 4: Create the function with a custom MESSAGE value
 
 ```
 aws lambda create-function --function-name msg-$PARTICIPANT --runtime nodejs20.x --handler index.handler --role $ROLE_ARN --zip-file fileb://fn.zip --environment 'Variables={MESSAGE=hello from Lambda env var}' --tags Owner=$PARTICIPANT,Course=cloudnative-course-2026 --region us-east-1
 ```
+
+Breaking down the key flags: `--runtime nodejs20.x` tells Lambda which language/version to run your code with. `--handler index.handler` tells it WHICH function to call inside your code - the format is `<filename-without-extension>.<exported-function-name>`, matching `exports.handler` in index.js. `--zip-file fileb://fn.zip` uploads the package from Step 3 (the `fileb://` prefix means 'read this as binary from a local file'). `--environment 'Variables={...}'` is where your MESSAGE value actually gets set.
 
 ## Step 5: Invoke it and see the configured message come back
 
@@ -73,6 +82,8 @@ aws lambda create-function --function-name msg-$PARTICIPANT --runtime nodejs20.x
 aws lambda invoke --function-name msg-$PARTICIPANT --region us-east-1 out.json
 cat out.json
 ```
+
+`aws lambda invoke` triggers a real, one-time execution of your function and writes whatever it returns into the local file `out.json` - there's no separate 'start the server' step like Docker; the function only runs for the duration of this single invocation, then stops.
 
 ## Step 6: Change ONLY the configuration, not the code, and invoke again
 

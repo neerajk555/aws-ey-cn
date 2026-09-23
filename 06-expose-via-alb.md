@@ -29,6 +29,33 @@ Notice this stays a plain ClusterIP Service - the ALB is created by an Ingress r
 
 ## Step 2: Write an Ingress using AWS's ALB ingress class, WITH required tags
 
+**In VS Code:** Create a new file named `~/course/web-ingress.yaml` in your current working folder (Explorer panel, right-click your folder > New File), paste this in, and save (`Ctrl+S`):
+
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/tags: Owner=$PARTICIPANT,Course=cloudnative-course-2026
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port:
+                  number: 80
+```
+
+*(If you'd rather use the terminal instead of VS Code, this does the same thing:)*
+
 ```
 cat > ~/course/web-ingress.yaml <<'EOF'
 apiVersion: networking.k8s.io/v1
@@ -55,33 +82,6 @@ EOF
 ```
 
 
-**Using VS Code instead:** rather than the heredoc above, create this directly in the editor.
-
-In VS Code's Explorer panel, create a new file named `~/course/web-ingress.yaml` in your working folder, paste this, and save (`Ctrl+S`):
-
-```
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: web
-  annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/tags: Owner=$PARTICIPANT,Course=cloudnative-course-2026
-spec:
-  ingressClassName: alb
-  rules:
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: web
-                port:
-                  number: 80
-```
-
 Open this file in VS Code and check the `alb.ingress.kubernetes.io/tags` annotation carefully before applying - without it, the ALB is created UNTAGGED and your account's permission boundary denies untagged load balancer creation outright. `ingressClassName: alb` is what tells the AWS Load Balancer Controller (not any other ingress controller) to handle this specific object.
 
 ## Step 3: Apply it
@@ -89,6 +89,8 @@ Open this file in VS Code and check the `alb.ingress.kubernetes.io/tags` annotat
 ```
 kubectl apply -f ~/course/web-ingress.yaml
 ```
+
+`kubectl apply` sends this YAML to the Kubernetes API server, which creates the Ingress object - but the ALB itself doesn't exist yet at this exact moment. Applying the Ingress just registers your INTENT; the AWS Load Balancer Controller (running in the background, watching for objects like this) is what actually goes and provisions the real ALB in AWS, which is why the next step involves waiting.
 
 ## Step 4: Wait for the ALB address to appear
 

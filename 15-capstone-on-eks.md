@@ -36,12 +36,16 @@ kubectl get pods
 kubectl get jobs
 ```
 
+`helm install <release-name> <chart-path>` creates every object your chart defines in one shot - here, that means the `api` Deployment and the `worker` Job both get created together from a single command, tagged as one Helm 'release' named `capstone`.
+
 ## Step 3: Verify the ConfigMap value reached both api and worker
 
 ```
 kubectl logs job/$(kubectl get jobs -o jsonpath='{.items[0].metadata.name}')
 kubectl exec $(kubectl get pods -l app.kubernetes.io/instance=capstone -o jsonpath='{.items[0].metadata.name}') -- env | grep -i config
 ```
+
+Both commands look up their target's exact name automatically via `$(...)` rather than you having to copy-paste it - the first checks the worker Job's logs, the second checks the api Pod's environment. If your chart is correctly wired (Exercise 7's ConfigMap-injection pattern, applied to two different objects instead of one), both should show the same configured value.
 
 ## Step 4: Scale api via Helm, then roll back (Exercise 8's pattern, through Helm instead of kubectl directly)
 

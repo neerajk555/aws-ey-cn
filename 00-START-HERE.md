@@ -24,6 +24,13 @@ instead - it builds every concept locally, for free, before transferring it here
   ```
   Add this line to `~/.bashrc` if you want it set automatically in every new terminal.
 
+## How file creation works in these exercises
+
+Every time an exercise needs you to create a file, the instructions lead with **VS Code**: open the
+Explorer panel, create the file, paste the content, save. Right below that, a terminal-equivalent
+command is also shown in case you prefer typing directly into a terminal for a specific step - but
+VS Code is the primary, recommended way throughout, not an afterthought.
+
 ## The rule that matters most: cleanup is mandatory, not optional
 
 This is a **shared AWS training account** with real cost implications. Every exercise ends with a
@@ -44,15 +51,6 @@ From Exercise 4 onward, you're connecting to **one EKS cluster your instructor a
 manages for the whole cohort** - you never create, modify, or delete this cluster yourself, and you
 don't have permission to. You get your own Kubernetes namespace (`ns-$PARTICIPANT`) inside it, with a
 resource quota and RBAC scoping you to only your own namespace.
-
-## Using VS Code throughout
-
-Every exercise that creates a file shows the terminal command (a `cat > file <<EOF` heredoc) AND, right
-below it, a **"Using VS Code instead"** box telling you exactly what file to create via the Explorer
-panel and what to paste in. Beyond file creation, use VS Code's integrated terminal (`` Ctrl+` ``) for
-every command in these exercises so you never have to leave the editor window, and use the editor itself
-to review YAML/JSON output before you act on it - catching an indentation mistake by eye is much faster
-than debugging a cryptic `kubectl apply` error.
 
 ## The 15 exercises
 

@@ -20,6 +20,23 @@ A **PersistentVolumeClaim (PVC)** is a request for durable storage that outlives
 
 ## Step 1: Create a PVC
 
+**In VS Code:** Create a new file named `~/course/pvc.yaml` in your current working folder (Explorer panel, right-click your folder > New File), paste this in, and save (`Ctrl+S`):
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+```
+
+*(If you'd rather use the terminal instead of VS Code, this does the same thing:)*
+
 ```
 cat > ~/course/pvc.yaml <<'EOF'
 apiVersion: v1
@@ -33,31 +50,42 @@ spec:
     requests:
       storage: 1Gi
 EOF
+```
+
+In a terminal (VS Code's integrated terminal works well here - `` Ctrl+` ``):
+
+```
 kubectl apply -f ~/course/pvc.yaml
 kubectl get pvc
 ```
 
 
-**Using VS Code instead:** rather than the heredoc above, create this directly in the editor.
-
-In VS Code's Explorer panel, create a new file named `~/course/pvc.yaml` in your working folder, paste this, and save (`Ctrl+S`):
-
-```
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: my-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-```
-
 This alone doesn't create the EBS volume yet - a PVC in isolation just sits there requesting storage until something actually uses it, which happens in the next step.
 
 ## Step 2: Mount it in a Pod and write data
+
+**In VS Code:** Create a new file named `~/course/pod-with-pvc.yaml` in your current working folder (Explorer panel, right-click your folder > New File), paste this in, and save (`Ctrl+S`):
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pvc-demo
+spec:
+  containers:
+    - name: app
+      image: busybox
+      command: ["sleep", "3600"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: my-pvc
+```
+
+*(If you'd rather use the terminal instead of VS Code, this does the same thing:)*
 
 ```
 cat > ~/course/pod-with-pvc.yaml <<'EOF'
@@ -78,33 +106,17 @@ spec:
       persistentVolumeClaim:
         claimName: my-pvc
 EOF
+```
+
+In a terminal (VS Code's integrated terminal works well here - `` Ctrl+` ``):
+
+```
 kubectl apply -f ~/course/pod-with-pvc.yaml
 kubectl exec pvc-demo -- sh -c 'echo persisted-data > /data/file.txt'
 ```
 
 
-**Using VS Code instead:** rather than the heredoc above, create this directly in the editor.
-
-In VS Code's Explorer panel, create a new file named `~/course/pod-with-pvc.yaml` in your working folder, paste this, and save (`Ctrl+S`):
-
-```
-apiVersion: v1
-kind: Pod
-metadata:
-  name: pvc-demo
-spec:
-  containers:
-    - name: app
-      image: busybox
-      command: ["sleep", "3600"]
-      volumeMounts:
-        - name: data
-          mountPath: /data
-  volumes:
-    - name: data
-      persistentVolumeClaim:
-        claimName: my-pvc
-```
+Two separate things connect the Pod to your storage: `volumes` (bottom) declares that `data` refers to the PVC named `my-pvc` from the previous step, and `volumeMounts` (inside the container spec) says WHERE inside the container's filesystem that volume shows up - here, at `/data`. The final `kubectl exec` command writes a test file into that mounted path, which is what you'll check survives the Pod's deletion in the next step.
 
 ## Step 3: Confirm a REAL EBS volume now exists, and capture its exact ID
 

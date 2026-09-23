@@ -34,6 +34,8 @@ cd mychart
 echo 'greeting: hello-from-helm-on-eks' >> values.yaml
 ```
 
+`>>` appends this line to the end of `values.yaml` without disturbing anything already in the file - equivalent to opening the file in VS Code and typing a new line at the bottom, just faster for a single line. Every value in this file becomes available inside your chart's templates as `.Values.<key>`.
+
 ## Step 3: Reference it in the Deployment template
 
 Open `templates/deployment.yaml` in VS Code and add this under the container spec (watch your indentation - it must line up with the other keys at the same level, like `image:`):
@@ -67,6 +69,8 @@ No cluster-specific changes were needed - the same chart genuinely works here, o
 kubectl get pods -l app.kubernetes.io/instance=eks-chart-demo
 kubectl exec $(kubectl get pods -l app.kubernetes.io/instance=eks-chart-demo -o jsonpath='{.items[0].metadata.name}') -- env | grep GREETING
 ```
+
+`app.kubernetes.io/instance=eks-chart-demo` is a label Helm automatically adds to every object it creates, tagged with your release name - using it as a selector is a reliable way to find 'everything this specific Helm release created' without knowing exact Pod names in advance. The `$(...)` part looks up the Pod's name automatically so you don't have to copy-paste it by hand.
 
 ## Verify It Worked
 

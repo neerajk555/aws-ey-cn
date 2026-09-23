@@ -33,6 +33,8 @@ This command writes connection details (the cluster's API endpoint and a way to 
 aws eks describe-cluster --name course-shared-cluster --region us-east-1 --query 'cluster.{Status:status,Endpoint:endpoint,Version:version}'
 ```
 
+The `--query` flag uses JMESPath to pull out just three fields from a much larger JSON response - `Status` should read `ACTIVE`, `Endpoint` is the URL kubectl actually talks to, and `Version` is the Kubernetes version your instructor's cluster is running. Try the same command without `--query` once to see the full response and appreciate how much this flag is filtering out.
+
 ## Step 3: See the worker nodes
 
 ```

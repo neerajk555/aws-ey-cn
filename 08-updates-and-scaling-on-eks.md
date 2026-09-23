@@ -24,6 +24,8 @@ A **rolling update** replaces old Pods with new ones gradually, keeping the app 
 kubectl create deployment web --image=nginx:1.26 --replicas=2
 ```
 
+Deliberately starting on `nginx:1.26` (not the latest) so the next step's update to `1.27` has something real to change - watch the exact version number as you go through this exercise.
+
 ## Step 2: Perform a rolling update to version 2
 
 ```
@@ -58,6 +60,8 @@ If some Pods are stuck Pending, run `kubectl describe pod <pending-pod-name>` an
 ```
 kubectl scale deployment web --replicas=2
 ```
+
+`kubectl scale` changes ONLY the replica count - it doesn't touch the image, environment variables, or anything else about the Deployment. This is the cleanup step for the quota experiment above, returning you to a safe baseline before moving on.
 
 ## Verify It Worked
 

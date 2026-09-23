@@ -39,6 +39,8 @@ This creates a ClusterIP Service - reachable from inside the cluster only, by th
 kubectl get deployments,pods,svc
 ```
 
+This one command lists three different object types at once, comma-separated - a quick way to see your Deployment, its Pods, and the Service together without three separate commands. Look for the Deployment showing 2/2 ready and both Pods in Running state.
+
 ## Step 4: Prove self-healing: delete a Pod directly and watch it get replaced
 
 ```

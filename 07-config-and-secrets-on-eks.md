@@ -24,6 +24,8 @@ kubectl create configmap app-config --from-literal=GREETING=hello
 kubectl create secret generic app-secret --from-literal=API_KEY=demo123
 ```
 
+`--from-literal=KEY=value` creates the object with a single key-value pair directly from the command line - the quickest way to create either object for a simple case like this. Both commands create objects scoped to your current namespace, same as everything else you've deployed so far.
+
 ## Step 2: Create a Deployment and inject both as environment variables
 
 ```
@@ -32,12 +34,16 @@ kubectl set env deployment/web --from=configmap/app-config
 kubectl set env deployment/web --from=secret/app-secret
 ```
 
+`kubectl set env --from=configmap/X` (or `secret/X`) takes EVERY key in that ConfigMap or Secret and injects it as an environment variable with the same name - you don't have to list each key individually. Each `set env` command triggers a new rollout of the Deployment, since changing the Pod template always does.
+
 ## Step 3: Verify both landed inside the Pod
 
 ```
 kubectl get pods
 kubectl exec <paste-pod-name-here> -- env | grep -E 'GREETING|API_KEY'
 ```
+
+`kubectl exec <pod> -- <command>` runs a command INSIDE the running container, same idea as `docker exec`. Here it runs `env` (which prints every environment variable) and pipes it through `grep` to show only the two you care about.
 
 ## Step 4: Prove base64 is not encryption
 

@@ -19,24 +19,34 @@ You can't fix what you can't see. On AWS, container and function logs flow autom
 
 ## Step 1: Recreate a small Lambda function if you already cleaned up Exercise 2's
 
+In a terminal (VS Code's integrated terminal works well here - `` Ctrl+` ``):
+
 ```
 ROLE_ARN=$(aws iam get-role --role-name course-lambda-basic-execution --query 'Role.Arn' --output text)
 mkdir -p ~/course/logs-exercise && cd ~/course/logs-exercise
+```
+
+**In VS Code:** Create a new file named `index.js` in your current working folder (Explorer panel, right-click your folder > New File), paste this in, and save (`Ctrl+S`):
+
+```
+exports.handler = async () => ({ statusCode: 200, body: 'logging test' });
+```
+
+*(If you'd rather use the terminal instead of VS Code, this does the same thing:)*
+
+```
 cat > index.js <<'EOF'
 exports.handler = async () => ({ statusCode: 200, body: 'logging test' });
 EOF
+```
+
+In a terminal (VS Code's integrated terminal works well here - `` Ctrl+` ``):
+
+```
 zip fn.zip index.js
 aws lambda create-function --function-name msg-$PARTICIPANT --runtime nodejs20.x --handler index.handler --role $ROLE_ARN --zip-file fileb://fn.zip --tags Owner=$PARTICIPANT,Course=cloudnative-course-2026 --region us-east-1
 ```
 
-
-**Using VS Code instead:** rather than the heredoc above, create this directly in the editor.
-
-In VS Code's Explorer panel, create a new file named `index.js` in your working folder, paste this, and save (`Ctrl+S`):
-
-```
-exports.handler = async () => ({ statusCode: 200, body: 'logging test' });
-```
 
 Skip this step entirely if Exercise 2's function still exists (`aws lambda get-function --function-name msg-$PARTICIPANT --region us-east-1` to check).
 
@@ -45,6 +55,8 @@ Skip this step entirely if Exercise 2's function still exists (`aws lambda get-f
 ```
 for i in 1 2 3; do aws lambda invoke --function-name msg-$PARTICIPANT --region us-east-1 out.json; done
 ```
+
+A `for` loop running the same invoke command 3 times - each invocation writes its own log entry to CloudWatch behind the scenes, which is what you'll read back in the next step. A single invocation would work too, but a few gives you more realistic log output to look at.
 
 ## Step 3: Read the logs back through CloudWatch
 
@@ -59,6 +71,8 @@ Every Lambda function automatically gets a log group named `/aws/lambda/<functio
 ```
 aws cloudwatch put-metric-alarm --alarm-name errors-$PARTICIPANT --metric-name Errors --namespace AWS/Lambda --dimensions Name=FunctionName,Value=msg-$PARTICIPANT --statistic Sum --period 300 --threshold 1 --comparison-operator GreaterThanOrEqualToThreshold --evaluation-periods 1 --region us-east-1
 ```
+
+Reading this as a sentence: alarm when the SUM of the Errors metric, for this specific function, over a 300-second (5-minute) period, is GREATER THAN OR EQUAL TO a threshold of 1, checked over 1 evaluation period. In plain terms - 'tell me if this function throws even one error in a given 5-minute window.'
 
 ## Step 5: Confirm the alarm exists
 

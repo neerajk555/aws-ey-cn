@@ -22,23 +22,45 @@ A container image is a portable, versioned package - the exact same one that run
 
 ## Step 1: Create your working folder and app source
 
+In a terminal (VS Code's integrated terminal works well here - `` Ctrl+` ``):
+
 ```
 mkdir -p ~/course/ecr-exercise && cd ~/course/ecr-exercise
+```
+
+**In VS Code:** Create a new file named `index.js` in your current working folder (Explorer panel, right-click your folder > New File), paste this in, and save (`Ctrl+S`):
+
+```
+require('http').createServer((req, res) => res.end('Hello from ECR!')).listen(3000);
+```
+
+*(If you'd rather use the terminal instead of VS Code, this does the same thing:)*
+
+```
 cat > index.js <<'EOF'
 require('http').createServer((req, res) => res.end('Hello from ECR!')).listen(3000);
 EOF
 ```
 
 
-**Using VS Code instead:** rather than the heredoc above, create this directly in the editor.
-
-In VS Code's Explorer panel, create a new file named `index.js` in your working folder, paste this, and save (`Ctrl+S`):
-
-```
-require('http').createServer((req, res) => res.end('Hello from ECR!')).listen(3000);
-```
+`mkdir -p` creates the folder (and any missing parent folders) without erroring if it already exists - safe to re-run. `index.js` is a minimal Node.js web server: it starts an HTTP server that responds to every request with the same fixed text, listening on port 3000. This is deliberately trivial - the point of this exercise is the ECR push mechanics, not the application code.
 
 ## Step 2: Write the Dockerfile - this ONE file defines everything you're about to push
+
+**In VS Code:** Create a new file named `Dockerfile` in your current working folder (Explorer panel, right-click your folder > New File), paste this in, and save (`Ctrl+S`):
+
+```
+FROM node:20 AS build
+WORKDIR /app
+COPY index.js .
+
+FROM node:20-slim
+WORKDIR /app
+COPY --from=build /app/index.js .
+CMD ["node", "index.js"]
+```
+
+*(If you'd rather use the terminal instead of VS Code, this does the same thing:)*
 
 ```
 cat > Dockerfile <<'EOF'
@@ -53,21 +75,6 @@ CMD ["node", "index.js"]
 EOF
 ```
 
-
-**Using VS Code instead:** rather than the heredoc above, create this directly in the editor.
-
-In VS Code's Explorer panel, create a new file named `Dockerfile` in your working folder, paste this, and save (`Ctrl+S`):
-
-```
-FROM node:20 AS build
-WORKDIR /app
-COPY index.js .
-
-FROM node:20-slim
-WORKDIR /app
-COPY --from=build /app/index.js .
-CMD ["node", "index.js"]
-```
 
 This is a multi-stage build: the `build` stage has the full Node.js toolchain, but the final image (`node:20-slim`) only contains what's actually needed to run the app - a smaller, cheaper image to store and push. Open this file in VS Code now and read through it before continuing, so you know exactly what you're about to build.
 
