@@ -52,7 +52,7 @@ manages for the whole cohort** - you never create, modify, or delete this cluste
 don't have permission to. You get your own Kubernetes namespace (`ns-$PARTICIPANT`) inside it, with a
 resource quota and RBAC scoping you to only your own namespace.
 
-## The 15 exercises
+## The 26 exercises
 
 | # | Exercise | What it covers |
 |---|---|---|
@@ -71,5 +71,21 @@ resource quota and RBAC scoping you to only your own namespace.
 | 13 | CodeBuild | CI build stage |
 | 14 | CloudWatch Logs and Alarm | Observability, alerting |
 | 15 | Capstone on EKS | End-to-end: chart, probes, scaling, rollback |
+| 16 | API Gateway + Lambda | HTTP API backed by a real Lambda function |
+| 17 | Cognito Authorizer | Protecting an API with real user authentication |
+| 18 | X-Ray Tracing | Request-level timing across API Gateway + Lambda |
+| 19 | Container Insights + Managed Prometheus | Reading shared, instructor-owned metrics infrastructure |
+| 20 | IRSA | Pod-level AWS credentials with zero access keys |
+| 21 | Network Policies | Real Pod-to-Pod network isolation |
+| 22 | SSM Parameter Store | AWS-native config, with real encryption |
+| 23 | CodePipeline | Multi-stage CI/CD orchestration |
+| 24 | CodeDeploy for Lambda | Blue/green deployment via traffic-shifting alias |
+| 25 | GitOps with ArgoCD | Git as the source of truth, self-healing reconciliation |
+| 26 | App Mesh | Service mesh, weighted traffic routing |
+
+Exercises 16-26 depend on additional shared infrastructure beyond the base EKS cluster - your instructor
+sets this up once via `INSTRUCTOR-ADDITIONAL-SETUP.md` (a separate document, in the account-setup
+package, not this one). If an exercise's prerequisites mention something you don't have, that's the
+first place to check.
 
 Start with Exercise 1.
